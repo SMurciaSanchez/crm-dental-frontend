@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelo ER — CRM Odontológico Académico</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --accent5: #f472b6;
+    --accent6: #a78bfa;
+    --accent7: #fbbf24;
+
+    --c1: #38bdf8; /* Usuarios */
+    --c2: #34d399; /* Clínica */
+    --c3: #818cf8; /* Historia Clínica */
+    --c4: #fb923c; /* Citas */
+    --c5: #f472b6; /* Pagos */
+    --c6: #a78bfa; /* Multimedia */
+    --c7: #fbbf24; /* Seguridad */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ─── Header ─── */
+  header {
+    background: linear-gradient(135deg, #0d1b2e 0%, #0a0e1a 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 3rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .header-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .header-title .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .header-title h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .header-title h1 span {
+    color: var(--accent);
+  }
+
+  .section-nav {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .nav-btn.active { font-weight: 700; }
+
+  /* ─── Main Layout ─── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+  }
+
+  /* ─── Section ─── */
+  .section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .section-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .section-meta { flex: 1; }
+  .section-meta .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    display: block;
+  }
+
+  .section-meta h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .section-meta p  { color: var(--muted); font-size: 0.9rem; line-height: 1.6; max-width: 700px; }
+
+  /* ─── Tables Grid ─── */
+  .tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .table-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .table-card-header {
+    padding: 0.9rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-card-header .table-icon {
+    font-size: 1rem;
+  }
+
+  .table-card-header .table-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .table-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .fields-list {
+    padding: 0.75rem 0;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 1.2rem;
+    font-size: 0.82rem;
+    border-left: 2px solid transparent;
+    transition: background 0.15s;
+  }
+
+  .field-row:hover { background: rgba(255,255,255,0.03); }
+
+  .field-row.pk {
+    border-left-color: var(--accent7);
+    color: var(--accent7);
+  }
+
+  .field-row.fk {
+    border-left-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .field-row.enc {
+    border-left-color: var(--accent3);
+  }
+
+  .field-key {
+    font-size: 0.65rem;
+    width: 26px;
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .field-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .field-type {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .field-note {
+    font-size: 0.65rem;
+    color: var(--accent3);
+    opacity: 0.8;
+  }
+
+  /* ─── Relations Panel ─── */
+  .relations-panel {
+    margin-top: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .relations-panel h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+  }
+
+  .rel-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .rel-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--surface2);
+    border-radius: 8px;
+  }
+
+  .rel-item .from { font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+  .rel-item .arrow { color: var(--muted); font-size: 0.75rem; }
+  .rel-item .to   { font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+  .rel-item .card { font-size: 0.62rem; color: var(--muted); margin-left: auto; }
+
+  /* ─── Legend ─── */
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Overview section ─── */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .module-card:hover { transform: translateY(-3px); }
+
+  .module-card .mod-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+  .module-card .mod-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .module-card .mod-tables { font-size: 0.72rem; color: var(--muted); }
+  .module-card .mod-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <span class="label">Trabajo de Grado · Ingeniería de Sistemas</span>
+    <h1>CRM Odontológico <span>Académico</span> — Modelo ER</h1>
+  </div>
+  <nav class="section-nav" id="navBar">
+    <button class="nav-btn active" data-section="overview" style="color:#38bdf8;border-color:#38bdf850;background:#38bdf810">Vista General</button>
+    <button class="nav-btn" data-section="usuarios" style="color:var(--c1);border-color:var(--c1)30">👤 Usuarios</button>
+    <button class="nav-btn" data-section="clinica" style="color:var(--c2);border-color:var(--c2)30">🏥 Clínica</button>
+    <button class="nav-btn" data-section="historia" style="color:var(--c3);border-color:var(--c3)30">📋 Historia Clínica</button>
+    <button class="nav-btn" data-section="citas" style="color:var(--c4);border-color:var(--c4)30">📅 Citas</button>
+    <button class="nav-btn" data-section="pagos" style="color:var(--c5);border-color:var(--c5)30">💳 Pagos</button>
+    <button class="nav-btn" data-section="multimedia" style="color:var(--c6);border-color:var(--c6)30">🖼️ Multimedia</button>
+    <button class="nav-btn" data-section="seguridad" style="color:var(--c7);border-color:var(--c7)30">🔐 Seguridad</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ════════════════════════════════ OVERVIEW ════════════════════════════════ -->
+<section class="section active" id="overview">
+  <div class="section-header">
+    <div class="section-icon" style="background:#38bdf820;color:#38bdf8">⬡</div>
+    <div class="section-meta">
+      <span class="tag" style="color:#38bdf8">Resumen del Modelo</span>
+      <h2>Vista General del Sistema</h2>
+      <p>El modelo está dividido en 7 módulos cohesivos. Cada módulo agrupa entidades con alta cohesión entre sí y bajo acoplamiento hacia los demás. Haz clic en cualquier módulo para explorar sus tablas y relaciones.</p>
+    </div>
+  </div>
+
+  <div class="overview-grid">
+    <div class="module-card" onclick="goTo('usuarios')" style="border-color:var(--c1)40">
+      <div class="mod-icon">👤</div>
+      <div class="mod-title">Módulo de Usuarios</div>
+      <div class="mod-tables">Usuario · Paciente · Estudiante · Docente · Profesional</div>
+      <div class="mod-count" style="color:var(--c1)">6</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+    <div class="module-card" onclick="goTo('clinica')" style="border-color:var(--c2)40">
+      <div class="mod-icon">🏥</div>
+      <div class="mod-title">Módulo Clínico</div>
+      <div class="mod-tables">Sede · Consultorio · Disponibilidad · Procedimiento · CUPS</div>
+      <div class="mod-count" style="color:var(--c2)">7</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+    <div class="module-card" onclick="goTo('historia')" style="border-color:var(--c3)40">
+      <div class="mod-icon">📋</div>
+      <div class="mod-title">Historia Clínica</div>
+      <div class="mod-tables">HistoriaClinica · Odontograma · Diente · Diagnóstico · Consentimiento</div>
+      <div class="mod-count" style="color:var(--c3)">8</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+    <div class="module-card" onclick="goTo('citas')" style="border-color:var(--c4)40">
+      <div class="mod-icon">📅</div>
+      <div class="mod-title">Gestión de Citas</div>
+      <div class="mod-tables">Cita · PlanTratamiento · NotificacionCita · BitácoraCita</div>
+      <div class="mod-count" style="color:var(--c4)">5</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+    <div class="module-card" onclick="goTo('pagos')" style="border-color:var(--c5)40">
+      <div class="mod-icon">💳</div>
+      <div class="mod-title">Pagos y Facturación</div>
+      <div class="mod-tables">Factura · Pago · ItemFactura · Insumo · InsumoUsado</div>
+      <div class="mod-count" style="color:var(--c5)">6</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+    <div class="module-card" onclick="goTo('multimedia')" style="border-color:var(--c6)40">
+      <div class="mod-icon">🖼️</div>
+      <div class="mod-title">Multimedia y Archivos</div>
+      <div class="mod-tables">Archivo · Radiografia · VideoTeleodontologia · Firma</div>
+      <div class="mod-count" style="color:var(--c6)">5</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+    <div class="module-card" onclick="goTo('seguridad')" style="border-color:var(--c7)40">
+      <div class="mod-icon">🔐</div>
+      <div class="mod-title">Seguridad y Auditoría</div>
+      <div class="mod-tables">SesionUsuario · LogAuditoria · RegistroBiometrico · Permiso</div>
+      <div class="mod-count" style="color:var(--c7)">5</div>
+      <div style="font-size:0.7rem;color:var(--muted)">tablas</div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones Clave del Sistema (Transversales)</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from" style="color:var(--c4)">Cita</span><span class="arrow">→</span><span class="to" style="color:var(--c1)">Paciente</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c4)">Cita</span><span class="arrow">→</span><span class="to" style="color:var(--c1)">Estudiante</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c4)">Cita</span><span class="arrow">→</span><span class="to" style="color:var(--c2)">Consultorio</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c3)">HistoriaClinica</span><span class="arrow">→</span><span class="to" style="color:var(--c1)">Paciente</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c3)">HistoriaClinica</span><span class="arrow">→</span><span class="to" style="color:var(--c1)">Docente</span><span class="card">N:1 (firma)</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c5)">Factura</span><span class="arrow">→</span><span class="to" style="color:var(--c4)">Cita</span><span class="card">1:1</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c6)">Archivo</span><span class="arrow">→</span><span class="to" style="color:var(--c3)">HistoriaClinica</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from" style="color:var(--c7)">LogAuditoria</span><span class="arrow">→</span><span class="to" style="color:var(--c1)">Usuario</span><span class="card">N:1</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem" class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--accent7)"></span> PK — Clave primaria</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> FK — Clave foránea</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--accent3)"></span> ENC — Campo cifrado</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--muted)"></span> Campo normal</span>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ USUARIOS ════════════════════════════════ -->
+<section class="section" id="usuarios">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c1)20;color:var(--c1)">👤</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c1)">Módulo 1 — Identidad</span>
+      <h2 style="color:var(--c1)">Usuarios y Roles</h2>
+      <p>Centraliza la identidad en una tabla <code>Usuario</code>. Cada rol extiende esa identidad con datos específicos. Esto permite MFA, auditoría y permisos unificados sin duplicar datos de autenticación.</p>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--accent7)"></span> PK — Clave primaria</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> FK — Clave foránea</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--accent3)"></span> ENC — Campo cifrado en BD</span>
+  </div>
+
+  <div class="tables-grid">
+    <!-- Usuario -->
+    <div class="table-card" style="border-color:var(--c1)40">
+      <div class="table-card-header" style="background:var(--c1)10">
+        <span class="table-icon">🔑</span>
+        <span class="table-name" style="color:var(--c1)">Usuario</span>
+        <span class="table-badge">core</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">numero_documento</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">nombres</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">apellidos</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">email</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">telefono</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">password_hash</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo_documento</span><span class="field-type">ENUM</span><span class="field-note">CC/TI/CE/PS</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">rol</span><span class="field-type">ENUM</span><span class="field-note">PACIENTE/ESTUDIANTE/DOCENTE/ADMIN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">ACTIVO/INACTIVO/SUSPENDIDO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">mfa_habilitado</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">mfa_secreto</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">creado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ultimo_acceso</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <!-- Paciente -->
+    <div class="table-card" style="border-color:var(--c1)40">
+      <div class="table-card-header" style="background:var(--c1)10">
+        <span class="table-icon">🧑‍⚕️</span>
+        <span class="table-name" style="color:var(--c1)">Paciente</span>
+        <span class="table-badge">extiende usuario</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">fecha_nacimiento</span><span class="field-type">DATE·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">direccion</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">eps</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">genero</span><span class="field-type">ENUM</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ocupacion</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">contacto_emergencia_nombre</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">contacto_emergencia_tel</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">aceptacion_terminos</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">aceptacion_fecha</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <!-- Estudiante -->
+    <div class="table-card" style="border-color:var(--c1)40">
+      <div class="table-card-header" style="background:var(--c1)10">
+        <span class="table-icon">🎓</span>
+        <span class="table-name" style="color:var(--c1)">Estudiante</span>
+        <span class="table-badge">extiende usuario</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_tutor_id</span><span class="field-type">UUID → Docente</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">codigo_estudiantil</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">semestre_actual</span><span class="field-type">SMALLINT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">programa</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado_academico</span><span class="field-type">ENUM</span><span class="field-note">ACTIVO/EGRESADO/SUSPENDIDO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nivel_clinico</span><span class="field-type">ENUM</span><span class="field-note">PRECLÍNICO/CLÍNICO/INTERNADO</span></div>
+      </div>
+    </div>
+
+    <!-- Docente -->
+    <div class="table-card" style="border-color:var(--c1)40">
+      <div class="table-card-header" style="background:var(--c1)10">
+        <span class="table-icon">👨‍🏫</span>
+        <span class="table-name" style="color:var(--c1)">Docente</span>
+        <span class="table-badge">extiende usuario</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">numero_registro_prof</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">especialidades</span><span class="field-type">TEXT[]</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo_vinculacion</span><span class="field-type">ENUM</span><span class="field-note">PLANTA/CATEDRA/HORA-CATEDRA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">firma_digital_url</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">puede_supervisar</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+
+    <!-- AntecedenteMedico -->
+    <div class="table-card" style="border-color:var(--c1)40">
+      <div class="table-card-header" style="background:var(--c1)10">
+        <span class="table-icon">💊</span>
+        <span class="table-name" style="color:var(--c1)">AntecedenteMedico</span>
+        <span class="table-badge">del paciente</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">paciente_id</span><span class="field-type">UUID → Paciente</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">MÉDICO/FARMACOLÓGICO/QUIRÚRGICO/ALÉRGICO</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">descripcion</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <!-- GrupoPermiso -->
+    <div class="table-card" style="border-color:var(--c1)40">
+      <div class="table-card-header" style="background:var(--c1)10">
+        <span class="table-icon">🛡️</span>
+        <span class="table-name" style="color:var(--c1)">GrupoPermiso</span>
+        <span class="table-badge">RBAC</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nombre</span><span class="field-type">VARCHAR</span><span class="field-note">ADMIN/DOCENTE/ESTUDIANTE/PACIENTE</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">permisos</span><span class="field-type">JSONB</span><span class="field-note">array de acciones permitidas</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descripcion</span><span class="field-type">TEXT</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">Usuario</span><span class="arrow">→</span><span class="to">Paciente</span><span class="card">1:1</span></div>
+      <div class="rel-item"><span class="from">Usuario</span><span class="arrow">→</span><span class="to">Estudiante</span><span class="card">1:1</span></div>
+      <div class="rel-item"><span class="from">Usuario</span><span class="arrow">→</span><span class="to">Docente</span><span class="card">1:1</span></div>
+      <div class="rel-item"><span class="from">Paciente</span><span class="arrow">→</span><span class="to">AntecedenteMedico</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Estudiante</span><span class="arrow">→</span><span class="to">Docente</span><span class="card">N:1 (tutor)</span></div>
+      <div class="rel-item"><span class="from">Usuario</span><span class="arrow">→</span><span class="to">GrupoPermiso</span><span class="card">N:N</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ CLINICA ════════════════════════════════ -->
+<section class="section" id="clinica">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c2)20;color:var(--c2)">🏥</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c2)">Módulo 2 — Infraestructura</span>
+      <h2 style="color:var(--c2)">Clínica y Espacios</h2>
+      <p>Modela la jerarquía física: Sede → Piso → Consultorio. Cada consultorio tiene su propia disponibilidad horaria. El catálogo de procedimientos incluye los códigos CUPS del SGSSS colombiano.</p>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">🏢</span>
+        <span class="table-name" style="color:var(--c2)">Sede</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nombre</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">direccion</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ciudad</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">telefono</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activa</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">🦷</span>
+        <span class="table-name" style="color:var(--c2)">Consultorio</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">sede_id</span><span class="field-type">UUID → Sede</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_encargado_id</span><span class="field-type">UUID → Docente</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">numero</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">piso</span><span class="field-type">SMALLINT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">GENERAL/ENDODONCIA/CIRUGÍA/ORTODONCIA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">capacidad_sillas</span><span class="field-type">SMALLINT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">📆</span>
+        <span class="table-name" style="color:var(--c2)">DisponibilidadConsultorio</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">consultorio_id</span><span class="field-type">UUID → Consultorio</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">dia_semana</span><span class="field-type">ENUM</span><span class="field-note">LUN-DOM</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hora_apertura</span><span class="field-type">TIME</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hora_cierre</span><span class="field-type">TIME</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">duracion_slot_min</span><span class="field-type">SMALLINT</span><span class="field-note">ej: 30 minutos</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">🔬</span>
+        <span class="table-name" style="color:var(--c2)">Procedimiento</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">codigo_cups_id</span><span class="field-type">UUID → CodigoCUPS</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nombre</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descripcion</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">duracion_estimada_min</span><span class="field-type">SMALLINT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">costo_base</span><span class="field-type">DECIMAL(12,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">requiere_consentimiento</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nivel_minimo_semestre</span><span class="field-type">SMALLINT</span><span class="field-note">prerequisito académico</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">🏷️</span>
+        <span class="table-name" style="color:var(--c2)">CodigoCUPS</span>
+        <span class="table-badge">catálogo</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">codigo</span><span class="field-type">VARCHAR(10)</span><span class="field-note">ej: 898206</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descripcion</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">grupo</span><span class="field-type">VARCHAR</span><span class="field-note">ej: Odontología general</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">🗓️</span>
+        <span class="table-name" style="color:var(--c2)">AgendaDocente</span>
+        <span class="table-badge">horario docente</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_id</span><span class="field-type">UUID → Docente</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">consultorio_id</span><span class="field-type">UUID → Consultorio</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha</span><span class="field-type">DATE</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hora_inicio</span><span class="field-type">TIME</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hora_fin</span><span class="field-type">TIME</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">cupo_maximo</span><span class="field-type">SMALLINT</span><span class="field-note">estudiantes simultáneos</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c2)40">
+      <div class="table-card-header" style="background:var(--c2)10">
+        <span class="table-icon">📑</span>
+        <span class="table-name" style="color:var(--c2)">CodigoCIE10</span>
+        <span class="table-badge">catálogo</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">codigo</span><span class="field-type">VARCHAR(8)</span><span class="field-note">ej: K02.1</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descripcion</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">capitulo</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">Sede</span><span class="arrow">→</span><span class="to">Consultorio</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Consultorio</span><span class="arrow">→</span><span class="to">Docente</span><span class="card">N:1 (encargado)</span></div>
+      <div class="rel-item"><span class="from">Consultorio</span><span class="arrow">→</span><span class="to">DisponibilidadConsultorio</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Docente</span><span class="arrow">→</span><span class="to">AgendaDocente</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">AgendaDocente</span><span class="arrow">→</span><span class="to">Consultorio</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">Procedimiento</span><span class="arrow">→</span><span class="to">CodigoCUPS</span><span class="card">N:1</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ HISTORIA CLINICA ════════════════════════════════ -->
+<section class="section" id="historia">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c3)20;color:var(--c3)">📋</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c3)">Módulo 3 — Clínico</span>
+      <h2 style="color:var(--c3)">Historia Clínica</h2>
+      <p>Núcleo del sistema. Incluye el workflow de aprobación docente, odontograma por diente, diagnósticos con CIE-10 y CUPS, y consentimientos informados vinculados. Todas las HC son inmutables una vez firmadas por el docente.</p>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">📄</span>
+        <span class="table-name" style="color:var(--c3)">HistoriaClinica</span>
+        <span class="table-badge">núcleo</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">paciente_id</span><span class="field-type">UUID → Paciente</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">estudiante_id</span><span class="field-type">UUID → Estudiante</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_supervisor_id</span><span class="field-type">UUID → Docente</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">BORRADOR/PENDIENTE_FIRMA/FIRMADA/ARCHIVADA</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">motivo_consulta</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">examen_extraoral</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">examen_intraoral</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">hallazgos_clinicos</span><span class="field-type">JSONB·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hash_integridad</span><span class="field-type">VARCHAR(64)</span><span class="field-note">SHA-256 del documento firmado</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_apertura</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_firma_docente</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">🦷</span>
+        <span class="table-name" style="color:var(--c3)">Odontograma</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">version</span><span class="field-type">SMALLINT</span><span class="field-note">versión del odontograma</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_registro</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">observaciones_generales</span><span class="field-type">TEXT</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">⚪</span>
+        <span class="table-name" style="color:var(--c3)">Diente</span>
+        <span class="table-badge">por pieza dental</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">odontograma_id</span><span class="field-type">UUID → Odontograma</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">numero_diente</span><span class="field-type">SMALLINT</span><span class="field-note">FDI: 11-48 / 51-85</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado_general</span><span class="field-type">ENUM</span><span class="field-note">SANO/CARIADO/AUSENTE/CORONA/IMPLANTE</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">caras_afectadas</span><span class="field-type">TEXT[]</span><span class="field-note">MESIAL/DISTAL/OCLUSAL/VESTIBULAR/PALATINO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tratamiento_planeado</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tratamiento_realizado</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">notas</span><span class="field-type">TEXT</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">🩺</span>
+        <span class="table-name" style="color:var(--c3)">Diagnostico</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">codigo_cie10_id</span><span class="field-type">UUID → CodigoCIE10</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">codigo_cups_id</span><span class="field-type">UUID → CodigoCUPS</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">descripcion</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">DEFINITIVO/PRESUNTIVO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">✍️</span>
+        <span class="table-name" style="color:var(--c3)">ConsentimientoInformado</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">procedimiento_id</span><span class="field-type">UUID → Procedimiento</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">firma_paciente_id</span><span class="field-type">UUID → FirmaDigital</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">contenido_plantilla</span><span class="field-type">TEXT</span><span class="field-note">texto del consentimiento en el momento</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">PENDIENTE/FIRMADO/RECHAZADO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">firmado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">📝</span>
+        <span class="table-name" style="color:var(--c3)">EvolucionClinica</span>
+        <span class="table-badge">seguimiento</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">cita_id</span><span class="field-type">UUID → Cita</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">descripcion</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">observaciones</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">aprobado_por_docente</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">🗺️</span>
+        <span class="table-name" style="color:var(--c3)">PlanTratamiento</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">EN_PROCESO/COMPLETADO/ABANDONADO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">prioridad</span><span class="field-type">SMALLINT</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">descripcion</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_inicio</span><span class="field-type">DATE</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_fin_estimada</span><span class="field-type">DATE</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c3)40">
+      <div class="table-card-header" style="background:var(--c3)10">
+        <span class="table-icon">💊</span>
+        <span class="table-name" style="color:var(--c3)">Prescripcion</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_id</span><span class="field-type">UUID → Docente</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">medicamento</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">dosis</span><span class="field-type">VARCHAR·ENC</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">indicaciones</span><span class="field-type">TEXT·ENC</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_prescripcion</span><span class="field-type">DATE</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">Odontograma</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Odontograma</span><span class="arrow">→</span><span class="to">Diente</span><span class="card">1:32</span></div>
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">Diagnostico</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">ConsentimientoInformado</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">EvolucionClinica</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">PlanTratamiento</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">Prescripcion</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Diagnostico</span><span class="arrow">→</span><span class="to">CodigoCIE10 + CodigoCUPS</span><span class="card">N:1</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ CITAS ════════════════════════════════ -->
+<section class="section" id="citas">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c4)20;color:var(--c4)">📅</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c4)">Módulo 4 — Agenda</span>
+      <h2 style="color:var(--c4)">Gestión de Citas</h2>
+      <p>Maneja el ciclo completo de una cita: agendamiento, confirmación, ejecución y cierre. Incluye bitácora de cambios para trazabilidad, notificaciones multicanal y restricción por disponibilidad de consultorio y agenda docente.</p>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card" style="border-color:var(--c4)40">
+      <div class="table-card-header" style="background:var(--c4)10">
+        <span class="table-icon">📅</span>
+        <span class="table-name" style="color:var(--c4)">Cita</span>
+        <span class="table-badge">central</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">paciente_id</span><span class="field-type">UUID → Paciente</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">estudiante_id</span><span class="field-type">UUID → Estudiante</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_id</span><span class="field-type">UUID → Docente</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">consultorio_id</span><span class="field-type">UUID → Consultorio</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">procedimiento_id</span><span class="field-type">UUID → Procedimiento</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">plan_tratamiento_id</span><span class="field-type">UUID → PlanTratamiento</span><span class="field-note">nullable</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_hora_inicio</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_hora_fin</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">PENDIENTE/CONFIRMADA/EN_CURSO/COMPLETADA/CANCELADA/NO_ASISTIO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">PRESENCIAL/TELEODONTOLOGIA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">motivo_cancelacion</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">agendada_por_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">creada_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c4)40">
+      <div class="table-card-header" style="background:var(--c4)10">
+        <span class="table-icon">🔔</span>
+        <span class="table-name" style="color:var(--c4)">NotificacionCita</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">cita_id</span><span class="field-type">UUID → Cita</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">canal</span><span class="field-type">ENUM</span><span class="field-note">EMAIL/SMS/WHATSAPP/APP</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">CONFIRMACION/RECORDATORIO/CANCELACION/CAMBIO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">PENDIENTE/ENVIADA/FALLIDA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">mensaje</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">programada_para</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">enviada_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c4)40">
+      <div class="table-card-header" style="background:var(--c4)10">
+        <span class="table-icon">📜</span>
+        <span class="table-name" style="color:var(--c4)">BitacoraCita</span>
+        <span class="table-badge">trazabilidad</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">cita_id</span><span class="field-type">UUID → Cita</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">accion</span><span class="field-type">ENUM</span><span class="field-note">CREADA/MODIFICADA/CANCELADA/COMPLETADA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado_anterior</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado_nuevo</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">motivo</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c4)40">
+      <div class="table-card-header" style="background:var(--c4)10">
+        <span class="table-icon">⚡</span>
+        <span class="table-name" style="color:var(--c4)">BloqueAgenda</span>
+        <span class="table-badge">bloqueos</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">consultorio_id</span><span class="field-type">UUID → Consultorio</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">docente_id</span><span class="field-type">UUID → Docente</span><span class="field-note">nullable</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_inicio</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_fin</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">motivo</span><span class="field-type">TEXT</span><span class="field-note">FESTIVO/MANTENIMIENTO/EVENTO</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c4)40">
+      <div class="table-card-header" style="background:var(--c4)10">
+        <span class="table-icon">📋</span>
+        <span class="table-name" style="color:var(--c4)">ListaEsperaCita</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">paciente_id</span><span class="field-type">UUID → Paciente</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">procedimiento_id</span><span class="field-type">UUID → Procedimiento</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">prioridad</span><span class="field-type">SMALLINT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_solicitud</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">Paciente / Estudiante / Docente</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">Consultorio</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">Procedimiento</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">BitacoraCita</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">NotificacionCita</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">EvolucionClinica</span><span class="card">1:1</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ PAGOS ════════════════════════════════ -->
+<section class="section" id="pagos">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c5)20;color:var(--c5)">💳</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c5)">Módulo 5 — Financiero</span>
+      <h2 style="color:var(--c5)">Pagos y Facturación</h2>
+      <p>Gestiona el ciclo económico. Cada cita genera una factura con sus ítems (procedimiento + insumos). Los pagos se registran con referencia de la pasarela. El inventario de insumos permite controlar costos reales por sesión.</p>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card" style="border-color:var(--c5)40">
+      <div class="table-card-header" style="background:var(--c5)10">
+        <span class="table-icon">🧾</span>
+        <span class="table-name" style="color:var(--c5)">Factura</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">cita_id</span><span class="field-type">UUID → Cita</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">paciente_id</span><span class="field-type">UUID → Paciente</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">numero_factura</span><span class="field-type">VARCHAR</span><span class="field-note">consecutivo único</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">subtotal</span><span class="field-type">DECIMAL(12,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descuento</span><span class="field-type">DECIMAL(12,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">total</span><span class="field-type">DECIMAL(12,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">PENDIENTE/PAGADA/ANULADA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">emitida_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c5)40">
+      <div class="table-card-header" style="background:var(--c5)10">
+        <span class="table-icon">📦</span>
+        <span class="table-name" style="color:var(--c5)">ItemFactura</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">factura_id</span><span class="field-type">UUID → Factura</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">PROCEDIMIENTO/INSUMO/OTRO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descripcion</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">cantidad</span><span class="field-type">DECIMAL(8,3)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">precio_unitario</span><span class="field-type">DECIMAL(12,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">subtotal</span><span class="field-type">DECIMAL(12,2)</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c5)40">
+      <div class="table-card-header" style="background:var(--c5)10">
+        <span class="table-icon">💳</span>
+        <span class="table-name" style="color:var(--c5)">Pago</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">factura_id</span><span class="field-type">UUID → Factura</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">monto</span><span class="field-type">DECIMAL(12,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">metodo</span><span class="field-type">ENUM</span><span class="field-note">TARJETA/PSE/EFECTIVO/TRANSFERENCIA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">referencia_pasarela</span><span class="field-type">VARCHAR</span><span class="field-note">ID de Wompi/PayU/Stripe</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">estado</span><span class="field-type">ENUM</span><span class="field-note">APROBADO/RECHAZADO/PENDIENTE/REEMBOLSADO</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">respuesta_pasarela</span><span class="field-type">JSONB</span><span class="field-note">payload completo de la pasarela</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">procesado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c5)40">
+      <div class="table-card-header" style="background:var(--c5)10">
+        <span class="table-icon">🧪</span>
+        <span class="table-name" style="color:var(--c5)">Insumo</span>
+        <span class="table-badge">inventario</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">sede_id</span><span class="field-type">UUID → Sede</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nombre</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">unidad_medida</span><span class="field-type">VARCHAR</span><span class="field-note">ml/gr/unidad</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">precio_unitario</span><span class="field-type">DECIMAL(10,2)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">stock_actual</span><span class="field-type">DECIMAL(10,3)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">stock_minimo</span><span class="field-type">DECIMAL(10,3)</span><span class="field-note">para alertas</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c5)40">
+      <div class="table-card-header" style="background:var(--c5)10">
+        <span class="table-icon">🔗</span>
+        <span class="table-name" style="color:var(--c5)">InsumoUsadoCita</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">cita_id</span><span class="field-type">UUID → Cita</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">insumo_id</span><span class="field-type">UUID → Insumo</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">cantidad</span><span class="field-type">DECIMAL(8,3)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">precio_al_momento</span><span class="field-type">DECIMAL(10,2)</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c5)40">
+      <div class="table-card-header" style="background:var(--c5)10">
+        <span class="table-icon">📊</span>
+        <span class="table-name" style="color:var(--c5)">MovimientoInventario</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">insumo_id</span><span class="field-type">UUID → Insumo</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">ENTRADA/SALIDA/AJUSTE</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">cantidad</span><span class="field-type">DECIMAL(10,3)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">motivo</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">Factura</span><span class="card">1:1</span></div>
+      <div class="rel-item"><span class="from">Factura</span><span class="arrow">→</span><span class="to">ItemFactura</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Factura</span><span class="arrow">→</span><span class="to">Pago</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">InsumoUsadoCita</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Insumo</span><span class="arrow">→</span><span class="to">InsumoUsadoCita</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Insumo</span><span class="arrow">→</span><span class="to">MovimientoInventario</span><span class="card">1:N</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ MULTIMEDIA ════════════════════════════════ -->
+<section class="section" id="multimedia">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c6)20;color:var(--c6)">🖼️</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c6)">Módulo 6 — Archivos</span>
+      <h2 style="color:var(--c6)">Multimedia, Radiografías y Firmas</h2>
+      <p>Los archivos no se almacenan en la BD relacional, sino en S3. La tabla solo guarda metadatos y el key de S3. Las radiografías tienen metadatos DICOM específicos. Las firmas digitales tienen hash para garantizar su integridad.</p>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card" style="border-color:var(--c6)40">
+      <div class="table-card-header" style="background:var(--c6)10">
+        <span class="table-icon">📁</span>
+        <span class="table-name" style="color:var(--c6)">Archivo</span>
+        <span class="table-badge">metadatos S3</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">subido_por_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">s3_bucket</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">s3_key</span><span class="field-type">VARCHAR</span><span class="field-note">ruta en S3</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">nombre_original</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo_mime</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo_archivo</span><span class="field-type">ENUM</span><span class="field-note">IMAGEN/VIDEO/RADIOGRAFIA/DOCUMENTO/DICOM</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tamano_bytes</span><span class="field-type">BIGINT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hash_sha256</span><span class="field-type">VARCHAR(64)</span><span class="field-note">integridad</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">cifrado</span><span class="field-type">BOOLEAN</span><span class="field-note">SSE-KMS en S3</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">subido_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c6)40">
+      <div class="table-card-header" style="background:var(--c6)10">
+        <span class="table-icon">🩻</span>
+        <span class="table-name" style="color:var(--c6)">Radiografia</span>
+        <span class="table-badge">DICOM</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">archivo_id</span><span class="field-type">UUID → Archivo</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">historia_clinica_id</span><span class="field-type">UUID → HistoriaClinica</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo_radiografia</span><span class="field-type">ENUM</span><span class="field-note">PERIAPICAL/PANORAMICA/CEFALOMETRICA/BITEWING</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">zona_anatomica</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">dientes_involucrados</span><span class="field-type">SMALLINT[]</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">equipo_usado</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">formato</span><span class="field-type">ENUM</span><span class="field-note">DICOM/JPEG/PNG</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">anotaciones</span><span class="field-type">JSONB</span><span class="field-note">marcaciones del docente (Cornerstone.js)</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">fecha_toma</span><span class="field-type">DATE</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c6)40">
+      <div class="table-card-header" style="background:var(--c6)10">
+        <span class="table-icon">🎥</span>
+        <span class="table-name" style="color:var(--c6)">VideoTeleodontologia</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">archivo_id</span><span class="field-type">UUID → Archivo</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">cita_id</span><span class="field-type">UUID → Cita</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">duracion_segundos</span><span class="field-type">INTEGER</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">url_streaming</span><span class="field-type">VARCHAR</span><span class="field-note">CloudFront Signed URL</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">expira_url_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">transcripcion</span><span class="field-type">TEXT</span><span class="field-note">IA opcional</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c6)40">
+      <div class="table-card-header" style="background:var(--c6)10">
+        <span class="table-icon">✍️</span>
+        <span class="table-name" style="color:var(--c6)">FirmaDigital</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">entidad_tipo</span><span class="field-type">VARCHAR</span><span class="field-note">HistoriaClinica/Consentimiento</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">entidad_id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo_firmante</span><span class="field-type">ENUM</span><span class="field-note">PACIENTE/ESTUDIANTE/DOCENTE</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hash_documento</span><span class="field-type">VARCHAR(64)</span><span class="field-note">SHA-256 del doc en el momento</span></div>
+        <div class="field-row enc"><span class="field-key">🔒</span><span class="field-name">firma_biometrica_ref</span><span class="field-type">VARCHAR·ENC</span><span class="field-note">ref al registro biométrico</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ip_origen</span><span class="field-type">INET</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">firmado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c6)40">
+      <div class="table-card-header" style="background:var(--c6)10">
+        <span class="table-icon">🔗</span>
+        <span class="table-name" style="color:var(--c6)">AccesoArchivo</span>
+        <span class="table-badge">Signed URL log</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">archivo_id</span><span class="field-type">UUID → Archivo</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">url_firmada</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">expira_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">usado</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">generado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">HistoriaClinica</span><span class="arrow">→</span><span class="to">Archivo</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">Archivo</span><span class="arrow">→</span><span class="to">Radiografia</span><span class="card">1:1</span></div>
+      <div class="rel-item"><span class="from">Cita</span><span class="arrow">→</span><span class="to">VideoTeleodontologia</span><span class="card">1:N</span></div>
+      <div class="rel-item"><span class="from">FirmaDigital</span><span class="arrow">→</span><span class="to">Usuario</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">Archivo</span><span class="arrow">→</span><span class="to">AccesoArchivo</span><span class="card">1:N</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ SEGURIDAD ════════════════════════════════ -->
+<section class="section" id="seguridad">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--c7)20;color:var(--c7)">🔐</div>
+    <div class="section-meta">
+      <span class="tag" style="color:var(--c7)">Módulo 7 — Compliance</span>
+      <h2 style="color:var(--c7)">Seguridad, Auditoría y Biometría</h2>
+      <p>Cumplimiento de la Ley 1581 y la Resolución 1995 de 1999. Los logs son append-only (sin UPDATE ni DELETE). El registro biométrico referencia externamente el dato sensible para no almacenarlo en la BD relacional.</p>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card" style="border-color:var(--c7)40">
+      <div class="table-card-header" style="background:var(--c7)10">
+        <span class="table-icon">📜</span>
+        <span class="table-name" style="color:var(--c7)">LogAuditoria</span>
+        <span class="table-badge">APPEND-ONLY</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">accion</span><span class="field-type">VARCHAR</span><span class="field-note">READ_HC / UPDATE_HC / CREATE_CITA / ...</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">entidad_tipo</span><span class="field-type">VARCHAR</span><span class="field-note">HistoriaClinica / Cita / ...</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">entidad_id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">datos_anteriores</span><span class="field-type">JSONB</span><span class="field-note">snapshot antes del cambio</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">datos_nuevos</span><span class="field-type">JSONB</span><span class="field-note">snapshot después del cambio</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ip_origen</span><span class="field-type">INET</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">user_agent</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">resultado</span><span class="field-type">ENUM</span><span class="field-note">EXITO/DENEGADO/ERROR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span><span class="field-note">inmutable</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c7)40">
+      <div class="table-card-header" style="background:var(--c7)10">
+        <span class="table-icon">💻</span>
+        <span class="table-name" style="color:var(--c7)">SesionUsuario</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">refresh_token_hash</span><span class="field-type">VARCHAR</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ip_origen</span><span class="field-type">INET</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">dispositivo</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activa</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">iniciada_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">expira_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">cerrada_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">mfa_verificado</span><span class="field-type">BOOLEAN</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c7)40">
+      <div class="table-card-header" style="background:var(--c7)10">
+        <span class="table-icon">🫆</span>
+        <span class="table-name" style="color:var(--c7)">RegistroBiometrico</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">tipo</span><span class="field-type">ENUM</span><span class="field-note">HUELLA/ROSTRO/FIRMA_MANUSCRITA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">referencia_externa</span><span class="field-type">VARCHAR</span><span class="field-note">ID en servicio biométrico externo</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">hash_template</span><span class="field-type">VARCHAR(64)</span><span class="field-note">NO se guarda el dato biométrico directo</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">activo</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c7)40">
+      <div class="table-card-header" style="background:var(--c7)10">
+        <span class="table-icon">🚦</span>
+        <span class="table-name" style="color:var(--c7)">IntentoAcceso</span>
+        <span class="table-badge">brute-force protection</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">usuario_id</span><span class="field-type">UUID → Usuario</span><span class="field-note">nullable</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">ip_origen</span><span class="field-type">INET</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">exito</span><span class="field-type">BOOLEAN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">motivo_fallo</span><span class="field-type">ENUM</span><span class="field-note">CONTRASEÑA/MFA/CUENTA_BLOQUEADA</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">registrado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+
+    <div class="table-card" style="border-color:var(--c7)40">
+      <div class="table-card-header" style="background:var(--c7)10">
+        <span class="table-icon">⚙️</span>
+        <span class="table-name" style="color:var(--c7)">ConfiguracionSistema</span>
+      </div>
+      <div class="fields-list">
+        <div class="field-row pk"><span class="field-key">PK</span><span class="field-name">id</span><span class="field-type">UUID</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">clave</span><span class="field-type">VARCHAR</span><span class="field-note">ej: SESSION_TIMEOUT_MIN</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">valor</span><span class="field-type">TEXT</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">descripcion</span><span class="field-type">TEXT</span></div>
+        <div class="field-row fk"><span class="field-key">FK</span><span class="field-name">modificado_por_id</span><span class="field-type">UUID → Usuario</span></div>
+        <div class="field-row"><span class="field-key"></span><span class="field-name">modificado_en</span><span class="field-type">TIMESTAMPTZ</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relations-panel">
+    <h3>🔗 Relaciones del Módulo + Notas de Implementación</h3>
+    <div class="rel-list">
+      <div class="rel-item"><span class="from">LogAuditoria</span><span class="arrow">→</span><span class="to">Usuario</span><span class="card">N:1 (append-only)</span></div>
+      <div class="rel-item"><span class="from">SesionUsuario</span><span class="arrow">→</span><span class="to">Usuario</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">RegistroBiometrico</span><span class="arrow">→</span><span class="to">Usuario</span><span class="card">N:1</span></div>
+      <div class="rel-item"><span class="from">IntentoAcceso</span><span class="arrow">→</span><span class="to">Usuario</span><span class="card">N:1 (nullable)</span></div>
+      <div class="rel-item" style="grid-column:1/-1;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2)">
+        <span style="color:var(--c7);font-size:0.75rem">⚠️ LogAuditoria debe implementarse como tabla PostgreSQL con un trigger BEFORE UPDATE/DELETE que eleve una excepción, garantizando inmutabilidad a nivel de base de datos.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const sections = document.querySelectorAll('.section');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.section;
+      goTo(target);
+    });
+  });
+
+  function goTo(target) {
+    sections.forEach(s => s.classList.remove('active'));
+    navBtns.forEach(b => {
+      b.classList.remove('active');
+      b.style.background = 'transparent';
+      b.style.fontWeight = '';
+    });
+
+    document.getElementById(target).classList.add('active');
+    const activeBtn = document.querySelector(`[data-section="${target}"]`);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.style.background = activeBtn.style.color.replace(')', '10)').replace('rgb', 'rgba') || 'rgba(255,255,255,0.1)';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
