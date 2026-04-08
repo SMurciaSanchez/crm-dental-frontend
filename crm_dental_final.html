@@ -2311,23 +2311,26 @@ textarea{resize:vertical;min-height:80px;}
  <div class="modal-sub">Completa los datos para registrar la cita en el sistema</div>
  <button class="modal-close" onclick="closeModal('modal-cita')"></button>
  </div>
- <div class="form-group"><label>Paciente</label><select><option>María Torres — CC 1020304050</option><option>Carlos Mendoza — CC 9080706050</option><option>Ana Gómez — TI 1003002001</option></select></div>
+ <div class="form-group"><label>Paciente</label><select id="nc-paciente"><option value="">Cargando pacientes...</option></select></div>
  <div class="form-row">
- <div class="form-group"><label>Estudiante asignado</label><select><option>Laura Ramírez (Sem. 6)</option><option>Diego López (Sem. 8)</option></select></div>
- <div class="form-group"><label>Docente supervisor</label><select><option>Dr. Alejandro Vargas</option><option>Dra. Mónica Pérez</option></select></div>
+ <div class="form-group"><label>Estudiante asignado</label><select id="nc-estudiante"><option value="">Cargando...</option></select></div>
+ <div class="form-group"><label>Docente supervisor</label><select id="nc-docente"><option value="">Cargando...</option></select></div>
  </div>
  <div class="form-row">
- <div class="form-group"><label>Consultorio</label><select><option>1A — General</option><option>2B — Endodoncia</option><option>3A — Ortodoncia</option><option>4C — Cirugía</option></select></div>
- <div class="form-group"><label>Procedimiento</label><select><option>Restauración directa (45 min)</option><option>Endodoncia (90 min)</option><option>Profilaxis (30 min)</option><option>Control ortodoncia (30 min)</option></select></div>
+ <div class="form-group"><label>Consultorio</label><select id="nc-consultorio"><option value="">Cargando...</option></select></div>
+ <div class="form-group"><label>Procedimiento</label><select id="nc-procedimiento"><option value="">— Ninguno —</option></select></div>
  </div>
  <div class="form-row">
- <div class="form-group"><label>Fecha y hora inicio</label><input type="datetime-local" value="2026-03-05T08:00"></div>
- <div class="form-group"><label>Tipo de cita</label><select><option>PRESENCIAL</option><option>TELEODONTOLOGÍA</option></select></div>
+ <div class="form-group"><label>Fecha</label><input id="nc-fecha" type="date"></div>
+ <div class="form-group"><label>Hora inicio</label><input id="nc-hora-inicio" type="time" value="08:00"></div>
  </div>
- <div class="form-group"><label>Plan de tratamiento (opcional)</label><select><option>— Ninguno —</option><option>Plan 2024-042 — María Torres</option></select></div>
+ <div class="form-row">
+ <div class="form-group"><label>Hora fin</label><input id="nc-hora-fin" type="time" value="09:00"></div>
+ <div class="form-group"><label>Motivo (opcional)</label><input id="nc-motivo" type="text" placeholder="Consulta general..."></div>
+ </div>
  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
  <button class="btn" onclick="closeModal('modal-cita')">Cancelar</button>
- <button class="btn btn-teal" onclick="closeModal('modal-cita');showToast(' Cita agendada correctamente')">Confirmar cita →</button>
+ <button id="btn-confirmar-cita" class="btn btn-teal" onclick="guardarCita()">Confirmar cita →</button>
  </div>
  </div>
 </div>
@@ -2394,15 +2397,15 @@ textarea{resize:vertical;min-height:80px;}
  <div class="modal-sub">Registrar nuevo paciente en el sistema</div>
  <button class="modal-close" onclick="closeModal('modal-paciente')"></button>
  </div>
- <div class="form-row"><div class="form-group"><label>Nombres <span class="enc-b">ENC</span></label><input type="text" placeholder="Juan Carlos"></div><div class="form-group"><label>Apellidos <span class="enc-b">ENC</span></label><input type="text" placeholder="Gómez Ruiz"></div></div>
- <div class="form-row"><div class="form-group"><label>Tipo documento</label><select><option>CC</option><option>TI</option><option>CE</option><option>PS</option></select></div><div class="form-group"><label>N° Documento <span class="enc-b">ENC</span></label><input type="text" placeholder="1234567890"></div></div>
- <div class="form-row"><div class="form-group"><label>Email <span class="enc-b">ENC</span></label><input type="email" placeholder="correo@ejemplo.com"></div><div class="form-group"><label>Teléfono <span class="enc-b">ENC</span></label><input type="tel" placeholder="+57 300 000 0000"></div></div>
- <div class="form-row"><div class="form-group"><label>Fecha nacimiento <span class="enc-b">ENC</span></label><input type="date"></div><div class="form-group"><label>EPS <span class="enc-b">ENC</span></label><input type="text" placeholder="Sura / Nueva EPS..."></div></div>
- <div class="form-row"><div class="form-group"><label>Género</label><select><option>Masculino</option><option>Femenino</option><option>No binario</option></select></div><div class="form-group"><label>Ocupación</label><input type="text" placeholder="Estudiante / Profesional"></div></div>
+ <div class="form-row"><div class="form-group"><label>Nombres <span class="enc-b">ENC</span></label><input id="np-nombres" type="text" placeholder="Juan Carlos"></div><div class="form-group"><label>Apellidos <span class="enc-b">ENC</span></label><input id="np-apellidos" type="text" placeholder="Gómez Ruiz"></div></div>
+ <div class="form-row"><div class="form-group"><label>Tipo documento</label><select id="np-tipo-doc"><option value="CC">CC</option><option value="TI">TI</option><option value="CE">CE</option><option value="PA">PA</option></select></div><div class="form-group"><label>N° Documento <span class="enc-b">ENC</span></label><input id="np-doc" type="text" placeholder="1234567890"></div></div>
+ <div class="form-row"><div class="form-group"><label>Email <span class="enc-b">ENC</span></label><input id="np-email" type="email" placeholder="correo@ejemplo.com"></div><div class="form-group"><label>Teléfono <span class="enc-b">ENC</span></label><input id="np-tel" type="tel" placeholder="+57 300 000 0000"></div></div>
+ <div class="form-row"><div class="form-group"><label>Fecha nacimiento <span class="enc-b">ENC</span></label><input id="np-fecha-nac" type="date"></div><div class="form-group"><label>EPS <span class="enc-b">ENC</span></label><input id="np-eps" type="text" placeholder="Sura / Nueva EPS..."></div></div>
+ <div class="form-row"><div class="form-group"><label>Género</label><select id="np-genero"><option value="MASCULINO">Masculino</option><option value="FEMENINO">Femenino</option><option value="NO_BINARIO">No binario</option><option value="PREFIERO_NO_DECIR">Prefiero no decir</option></select></div><div class="form-group"><label>Ocupación</label><input id="np-ocupacion" type="text" placeholder="Estudiante / Profesional"></div></div>
  <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(0,201,167,0.05);border:1px solid rgba(0,201,167,0.15);border-radius:8px;margin-bottom:16px;"><input type="checkbox" id="terms2" style="width:auto;accent-color:var(--teal);"><label for="terms2" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--t2);cursor:pointer;margin:0;">Acepta tratamiento de datos personales (HABEAS DATA)</label></div>
  <div style="display:flex;gap:10px;justify-content:flex-end;">
  <button class="btn" onclick="closeModal('modal-paciente')">Cancelar</button>
- <button class="btn btn-teal" onclick="closeModal('modal-paciente');showToast(' Paciente registrado exitosamente')">Registrar paciente →</button>
+ <button id="btn-registrar-paciente" class="btn btn-teal" onclick="guardarPaciente()">Registrar paciente →</button>
  </div>
  </div>
 </div>
@@ -2544,10 +2547,11 @@ function toggleAcc(id){
  if(b) b.classList.toggle('open');
 }
 
-// Modal 
+// Modal
 function openModal(id){
  const m=document.getElementById(id);
  if(m){ m.classList.add('open'); document.body.style.overflow='hidden'; }
+ if(id === 'modal-cita' && typeof poblarSelectsCita === 'function') poblarSelectsCita();
 }
 function closeModal(id){
  const m=document.getElementById(id);

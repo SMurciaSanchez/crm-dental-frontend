@@ -503,6 +503,211 @@ async function cargarSeguridad() {
 }
 
 // ══════════════════════════════════════════════════════════════
+// GUARDAR PACIENTE DESDE MODAL
+// ══════════════════════════════════════════════════════════════
+window.guardarPaciente = async function () {
+  const nombres   = document.getElementById('np-nombres')?.value?.trim();
+  const apellidos = document.getElementById('np-apellidos')?.value?.trim();
+  const email     = document.getElementById('np-email')?.value?.trim();
+  const telefono  = document.getElementById('np-tel')?.value?.trim();
+  const tipoDocumento   = document.getElementById('np-tipo-doc')?.value;
+  const numeroDocumento = document.getElementById('np-doc')?.value?.trim();
+  const fechaNacimiento = document.getElementById('np-fecha-nac')?.value;
+  const eps       = document.getElementById('np-eps')?.value?.trim();
+  const genero    = document.getElementById('np-genero')?.value;
+  const ocupacion = document.getElementById('np-ocupacion')?.value?.trim();
+  const habeasData = document.getElementById('terms2')?.checked;
+
+  if (!nombres || !apellidos || !email || !numeroDocumento) {
+    showToast('⚠ Completa los campos obligatorios');
+    return;
+  }
+  if (!habeasData) {
+    showToast('⚠ El paciente debe aceptar el tratamiento de datos');
+    return;
+  }
+
+  const btn = document.getElementById('btn-registrar-paciente');
+  if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+
+  try {
+    await post('/pacientes', {
+      nombres, apellidos, email,
+      ...(telefono && { telefono }),
+      tipoDocumento,
+      numeroDocumento,
+      ...(fechaNacimiento && { fechaNacimiento }),
+      ...(eps && { eps }),
+      genero,
+      ...(ocupacion && { ocupacion }),
+      habeasData,
+    });
+
+    closeModal('modal-paciente');
+    showToast('✅ Paciente registrado exitosamente');
+
+    // Limpiar formulario
+    ['np-nombres','np-apellidos','np-email','np-tel','np-doc','np-fecha-nac','np-eps','np-ocupacion'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('terms2').checked = false;
+
+    // Recargar lista si estamos en la página de pacientes
+    if (document.getElementById('p-pacientes')?.classList.contains('active')) {
+      cargarPacientes();
+    }
+  } catch (err) {
+    showToast('❌ ' + (err.message || 'Error al registrar paciente'));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Registrar paciente →'; }
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// POBLAR SELECTS DEL MODAL NUEVA CITA
+// ══════════════════════════════════════════════════════════════
+async function poblarSelectsCita() {
+  try {
+    const [pacientesRes, sedesRes, procedimientosRes, estudiantesRes, docentesRes] = await Promise.allSettled([
+      get('/pacientes?limit=100'),
+      get('/sedes'),
+      get('/sedes/procedimientos'),
+      get('/usuarios?rol=ESTUDIANTE&limit=100'),
+      get('/usuarios?rol=DOCENTE&limit=100'),
+    ]);
+
+    // Pacientes
+    const selPac = document.getElementById('nc-paciente');
+    if (selPac && pacientesRes.status === 'fulfilled') {
+      const items = pacientesRes.value?.data || [];
+      selPac.innerHTML = '<option value="">— Seleccionar paciente —</option>' +
+        items.map(p => {
+          const u = p.usuario || {};
+          return `<option value="${p.id}">${u.nombres || ''} ${u.apellidos || ''} — ${u.tipoDocumento || 'CC'} ${u.numeroDocumento || ''}</option>`;
+        }).join('');
+    }
+
+    // Consultorios (de todas las sedes)
+    const selCons = document.getElementById('nc-consultorio');
+    if (selCons && sedesRes.status === 'fulfilled') {
+      const sedes = sedesRes.value?.data || [];
+      const consultorios = sedes.flatMap(s => (s.consultorios || []).map(c => ({ ...c, sedeNombre: s.nombre })));
+      selCons.innerHTML = '<option value="">— Seleccionar consultorio —</option>' +
+        consultorios.map(c => `<option value="${c.id}">${c.numero}${c.nombre ? ' — ' + c.nombre : ''} (${c.sedeNombre})</option>`).join('');
+    }
+
+    // Procedimientos
+    const selProc = document.getElementById('nc-procedimiento');
+    if (selProc && procedimientosRes.status === 'fulfilled') {
+      const procs = procedimientosRes.value?.data || [];
+      selProc.innerHTML = '<option value="">— Ninguno —</option>' +
+        procs.map(p => `<option value="${p.id}">${p.nombre} (${p.duracionMin} min)</option>`).join('');
+    }
+
+    // Estudiantes
+    const selEst = document.getElementById('nc-estudiante');
+    if (selEst && estudiantesRes.status === 'fulfilled') {
+      const items = estudiantesRes.value?.data || [];
+      selEst.innerHTML = '<option value="">— Sin asignar —</option>' +
+        items.map(u => `<option value="${u.estudiante?.id || u.id}">${u.nombres} ${u.apellidos}</option>`).join('');
+    }
+
+    // Docentes
+    const selDoc = document.getElementById('nc-docente');
+    if (selDoc && docentesRes.status === 'fulfilled') {
+      const items = docentesRes.value?.data || [];
+      selDoc.innerHTML = '<option value="">— Sin asignar —</option>' +
+        items.map(u => `<option value="${u.docente?.id || u.id}">${u.nombres} ${u.apellidos}</option>`).join('');
+    }
+
+    // Fecha de hoy por defecto
+    const fechaEl = document.getElementById('nc-fecha');
+    if (fechaEl && !fechaEl.value) {
+      fechaEl.value = new Date().toISOString().slice(0, 10);
+    }
+  } catch (err) {
+    console.warn('Error cargando selects de cita:', err.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GUARDAR CITA DESDE MODAL
+// ══════════════════════════════════════════════════════════════
+window.guardarCita = async function () {
+  const pacienteId    = document.getElementById('nc-paciente')?.value;
+  const consultorioId = document.getElementById('nc-consultorio')?.value;
+  const estudianteId  = document.getElementById('nc-estudiante')?.value || undefined;
+  const docenteId     = document.getElementById('nc-docente')?.value || undefined;
+  const procedimientoId = document.getElementById('nc-procedimiento')?.value || undefined;
+  const fecha       = document.getElementById('nc-fecha')?.value;
+  const horaInicio  = document.getElementById('nc-hora-inicio')?.value;
+  const horaFin     = document.getElementById('nc-hora-fin')?.value;
+  const motivo      = document.getElementById('nc-motivo')?.value?.trim() || undefined;
+
+  if (!pacienteId || !consultorioId || !fecha || !horaInicio || !horaFin) {
+    showToast('⚠ Completa paciente, consultorio, fecha y horario');
+    return;
+  }
+
+  const btn = document.getElementById('btn-confirmar-cita');
+  if (btn) { btn.disabled = true; btn.textContent = 'Agendando...'; }
+
+  try {
+    await post('/citas', {
+      pacienteId,
+      consultorioId,
+      ...(estudianteId && { estudianteId }),
+      ...(docenteId && { docenteId }),
+      ...(procedimientoId && { procedimientoId }),
+      fecha,
+      horaInicio,
+      horaFin,
+      ...(motivo && { motivo }),
+    });
+
+    closeModal('modal-cita');
+    showToast('✅ Cita agendada correctamente');
+
+    // Recargar agenda o dashboard si están activos
+    const activo = document.querySelector('.page.active')?.id;
+    if (activo === 'p-agenda') cargarAgenda();
+    else if (activo === 'p-dashboard') cargarDashboard();
+  } catch (err) {
+    showToast('❌ ' + (err.message || 'Error al agendar cita'));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirmar cita →'; }
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// TRATAMIENTOS — catálogo de procedimientos
+// ══════════════════════════════════════════════════════════════
+async function cargarTratamientos() {
+  try {
+    const { data } = await get('/tratamientos/procedimientos?limit=50');
+    const tbody = document.querySelector('#p-tratamientos .list-table tbody');
+    if (!tbody || !data) return;
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px;">Sin procedimientos registrados</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(p => `<tr>
+      <td><b>${p.nombre}</b></td>
+      <td><code style="font-size:11px;color:var(--teal);">${p.codigo}</code></td>
+      <td>${p.duracionMin} min</td>
+      <td>$${formatCOP(p.precioBase)}</td>
+      <td>—</td>
+      <td><span class="chip ${p.activo ? 'chip-teal' : 'chip-red'}">${p.activo ? 'ACTIVO' : 'INACTIVO'}</span></td>
+    </tr>`).join('');
+  } catch (err) {
+    console.warn('Error cargando tratamientos:', err.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 // HOOK DE NAVEGACIÓN — cargar datos al cambiar de página
 // ══════════════════════════════════════════════════════════════
 const _goToOriginal = window.goTo;
@@ -519,6 +724,7 @@ window.goTo = function (key, el) {
     inventario:    cargarInventario,
     multimedia:    cargarMultimedia,
     seguridad:     cargarSeguridad,
+    tratamientos:  cargarTratamientos,
   };
   loaders[key]?.();
 };
